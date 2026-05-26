@@ -414,7 +414,7 @@ def english_menu():
 
         response.add_speak("Playing audio message now.")
         response.add_play(
-            "https://actions.google.com/sounds/v1/alarms/beep_short.ogg"
+            "https://s3.amazonaws.com/plivocloud/music.mp3"
         )
         response.add_speak("Thank you for using Inspire Works. Goodbye.")
 
@@ -462,7 +462,7 @@ def spanish_menu():
 
         response.add_speak("Reproduciendo mensaje de audio ahora.")
         response.add_play(
-            "https://actions.google.com/sounds/v1/alarms/beep_short.ogg"
+            "https://s3.amazonaws.com/plivocloud/music.mp3"
         )
         response.add_speak("Gracias por usar Inspire Works. Adios.")
 
