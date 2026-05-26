@@ -58,4 +58,4 @@ Open `http://localhost:5001/` in your browser and click **"Initiate Call"**.
 
 ## OTP Details
 
-The OTP is set to `1503` (DDMM format).
+The OTP is set to `2605` (DDMM format).
