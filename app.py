@@ -16,9 +16,9 @@ app = Flask(__name__)
 AUTH_ID = os.getenv("PLIVO_AUTH_ID", "YOUR_PLIVO_AUTH_ID")
 AUTH_TOKEN = os.getenv("PLIVO_AUTH_TOKEN", "YOUR_PLIVO_AUTH_TOKEN")
 
-PLIVO_NUMBER = os.getenv("PLIVO_NUMBER", "912264232030")
-YOUR_PHONE = os.getenv("YOUR_PHONE", "919343428889")
-LIVE_ASSOCIATE = os.getenv("LIVE_ASSOCIATE", "912264236412")
+PLIVO_NUMBER = os.getenv("PLIVO_NUMBER", " ")
+YOUR_PHONE = os.getenv("YOUR_PHONE", " ")
+LIVE_ASSOCIATE = os.getenv("LIVE_ASSOCIATE", " ")
 
 CORRECT_OTP = os.getenv("CORRECT_OTP", "2605")
 BASE_URL = os.getenv("BASE_URL", "https://YOUR_NGROK_URL")
