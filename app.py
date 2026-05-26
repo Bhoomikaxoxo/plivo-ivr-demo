@@ -1,25 +1,27 @@
+import os
 from flask import Flask, request, Response, render_template_string
 import plivo
 from plivo import plivoxml
+from dotenv import load_dotenv
+
+# Load local environment variables from .env file
+load_dotenv()
 
 app = Flask(__name__)
 
 # -----------------------------
-# CONFIG
+# CONFIG (Loading from .env)
 # -----------------------------
 
-AUTH_ID = "YOUR_PLIVO_AUTH_ID"
-AUTH_TOKEN = "YOUR_PLIVO_AUTH_TOKEN"
+AUTH_ID = os.getenv("PLIVO_AUTH_ID", "YOUR_PLIVO_AUTH_ID")
+AUTH_TOKEN = os.getenv("PLIVO_AUTH_TOKEN", "YOUR_PLIVO_AUTH_TOKEN")
 
-PLIVO_NUMBER = "912264232030"
+PLIVO_NUMBER = os.getenv("PLIVO_NUMBER", "912264232030")
+YOUR_PHONE = os.getenv("YOUR_PHONE", "919343428889")
+LIVE_ASSOCIATE = os.getenv("LIVE_ASSOCIATE", "912264236412")
 
-YOUR_PHONE = "919343428889"
-
-LIVE_ASSOCIATE = "912264236412"
-
-CORRECT_OTP = "1503"
-
-BASE_URL = "https://unwashed-laxative-goggles.ngrok-free.dev"
+CORRECT_OTP = os.getenv("CORRECT_OTP", "1503")
+BASE_URL = os.getenv("BASE_URL", "https://YOUR_NGROK_URL")
 
 
 # -----------------------------
@@ -262,22 +264,22 @@ def make_call():
 @app.route("/answer", methods=["GET", "POST"])
 def answer():
 
-    response = plivoxml.Response()
+    response = plivoxml.ResponseElement()
 
-    get_digits = plivoxml.GetInput(
+    get_input = plivoxml.GetInputElement(
         action=f"{BASE_URL}/verify_otp",
         method="POST",
         input_type="dtmf",
         num_digits=4
     )
 
-    get_digits.addSpeak(
+    get_input.add_speak(
         "Welcome to Inspire Works. Please enter your 4 digit OTP."
     )
+    
+    response.add(get_input)
 
-    response.add(get_digits)
-
-    return Response(str(response), mimetype="text/xml")
+    return Response(response.to_string(), mimetype="text/xml")
 
 
 # -----------------------------
@@ -291,41 +293,41 @@ def verify_otp():
 
     print(f"OTP entered: {digits}")
 
-    response = plivoxml.Response()
+    response = plivoxml.ResponseElement()
 
     if digits == CORRECT_OTP:
 
-        get_lang = plivoxml.GetInput(
+        get_input = plivoxml.GetInputElement(
             action=f"{BASE_URL}/language",
             method="POST",
             input_type="dtmf",
             num_digits=1
         )
 
-        get_lang.addSpeak(
+        get_input.add_speak(
             "Authentication successful. "
             "Press 1 for English. "
             "Press 2 for Spanish."
         )
-
-        response.add(get_lang)
+        
+        response.add(get_input)
 
     else:
 
-        get_retry = plivoxml.GetInput(
+        get_input = plivoxml.GetInputElement(
             action=f"{BASE_URL}/verify_otp",
             method="POST",
             input_type="dtmf",
             num_digits=4
         )
 
-        get_retry.addSpeak(
+        get_input.add_speak(
             "Incorrect OTP. Please try again. Enter your 4 digit OTP."
         )
+        
+        response.add(get_input)
 
-        response.add(get_retry)
-
-    return Response(str(response), mimetype="text/xml")
+    return Response(response.to_string(), mimetype="text/xml")
 
 
 # -----------------------------
@@ -339,60 +341,60 @@ def language():
 
     print(f"Language selected: {digit}")
 
-    response = plivoxml.Response()
+    response = plivoxml.ResponseElement()
 
     if digit == "1":
 
-        get_menu = plivoxml.GetInput(
+        get_input = plivoxml.GetInputElement(
             action=f"{BASE_URL}/english_menu",
             method="POST",
             input_type="dtmf",
             num_digits=1
         )
 
-        get_menu.addSpeak(
+        get_input.add_speak(
             "English selected. "
             "Press 1 to play an audio message. "
             "Press 2 to connect to a live associate."
         )
-
-        response.add(get_menu)
+        
+        response.add(get_input)
 
     elif digit == "2":
 
-        get_menu = plivoxml.GetInput(
+        get_input = plivoxml.GetInputElement(
             action=f"{BASE_URL}/spanish_menu",
             method="POST",
             input_type="dtmf",
             num_digits=1
         )
 
-        get_menu.addSpeak(
+        get_input.add_speak(
             "Espanol seleccionado. "
             "Presione 1 para reproducir un mensaje de audio. "
             "Presione 2 para conectarse con un asociado."
         )
-
-        response.add(get_menu)
+        
+        response.add(get_input)
 
     else:
 
-        get_retry = plivoxml.GetInput(
+        get_input = plivoxml.GetInputElement(
             action=f"{BASE_URL}/language",
             method="POST",
             input_type="dtmf",
             num_digits=1
         )
 
-        get_retry.addSpeak(
+        get_input.add_speak(
             "Invalid input. "
             "Press 1 for English. "
             "Press 2 for Spanish."
         )
+        
+        response.add(get_input)
 
-        response.add(get_retry)
-
-    return Response(str(response), mimetype="text/xml")
+    return Response(response.to_string(), mimetype="text/xml")
 
 
 # -----------------------------
@@ -406,41 +408,41 @@ def english_menu():
 
     print(f"English menu selection: {digit}")
 
-    response = plivoxml.Response()
+    response = plivoxml.ResponseElement()
 
     if digit == "1":
 
-        response.addSpeak("Playing audio message now.")
-        response.addPlay(
+        response.add_speak("Playing audio message now.")
+        response.add_play(
             "https://actions.google.com/sounds/v1/alarms/beep_short.ogg"
         )
-        response.addSpeak("Thank you for using Inspire Works. Goodbye.")
+        response.add_speak("Thank you for using Inspire Works. Goodbye.")
 
     elif digit == "2":
 
-        response.addSpeak("Connecting you to a live associate. Please hold.")
-        dial = plivoxml.Dial(callerId=PLIVO_NUMBER)
-        dial.addNumber(LIVE_ASSOCIATE)
+        response.add_speak("Connecting you to a live associate. Please hold.")
+        dial = plivoxml.DialElement(caller_id=PLIVO_NUMBER)
+        dial.add_number(LIVE_ASSOCIATE)
         response.add(dial)
 
     else:
 
-        get_retry = plivoxml.GetInput(
+        get_input = plivoxml.GetInputElement(
             action=f"{BASE_URL}/english_menu",
             method="POST",
             input_type="dtmf",
             num_digits=1
         )
 
-        get_retry.addSpeak(
+        get_input.add_speak(
             "Invalid input. "
             "Press 1 to play an audio message. "
             "Press 2 to connect to a live associate."
         )
+        
+        response.add(get_input)
 
-        response.add(get_retry)
-
-    return Response(str(response), mimetype="text/xml")
+    return Response(response.to_string(), mimetype="text/xml")
 
 
 # -----------------------------
@@ -454,41 +456,41 @@ def spanish_menu():
 
     print(f"Spanish menu selection: {digit}")
 
-    response = plivoxml.Response()
+    response = plivoxml.ResponseElement()
 
     if digit == "1":
 
-        response.addSpeak("Reproduciendo mensaje de audio ahora.")
-        response.addPlay(
+        response.add_speak("Reproduciendo mensaje de audio ahora.")
+        response.add_play(
             "https://actions.google.com/sounds/v1/alarms/beep_short.ogg"
         )
-        response.addSpeak("Gracias por usar Inspire Works. Adios.")
+        response.add_speak("Gracias por usar Inspire Works. Adios.")
 
     elif digit == "2":
 
-        response.addSpeak("Conectandote con un asociado. Por favor espera.")
-        dial = plivoxml.Dial(callerId=PLIVO_NUMBER)
-        dial.addNumber(LIVE_ASSOCIATE)
+        response.add_speak("Conectandote con un asociado. Por favor espera.")
+        dial = plivoxml.DialElement(caller_id=PLIVO_NUMBER)
+        dial.add_number(LIVE_ASSOCIATE)
         response.add(dial)
 
     else:
 
-        get_retry = plivoxml.GetInput(
+        get_input = plivoxml.GetInputElement(
             action=f"{BASE_URL}/spanish_menu",
             method="POST",
             input_type="dtmf",
             num_digits=1
         )
 
-        get_retry.addSpeak(
+        get_input.add_speak(
             "Entrada invalida. "
             "Presione 1 para reproducir un mensaje de audio. "
             "Presione 2 para conectarse con un asociado."
         )
+        
+        response.add(get_input)
 
-        response.add(get_retry)
-
-    return Response(str(response), mimetype="text/xml")
+    return Response(response.to_string(), mimetype="text/xml")
 
 
 # -----------------------------
@@ -496,4 +498,4 @@ def spanish_menu():
 # -----------------------------
 
 if __name__ == "__main__":
-    app.run(port=5000, debug=True)
+    app.run(port=5001, debug=True)
